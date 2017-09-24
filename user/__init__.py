@@ -1,17 +1,12 @@
-import json
-
 import datetime
-
+import json
 import math
 import time
 
-from database_init import db
-from database_init import errors
-from database_init import ReturnDocument
-
 from common import check_req_body_wrapper, regular_req_headers, _bad_request, oid_handler, \
     _unauthorized_body, pc, _no_user_named_xxx, check_header_wrapper, auth_wrapper
-from database_init import db
+from database import db
+from database import errors
 from flask_init import app
 from flask_init import request
 from setting import client_id, client_secret
@@ -37,7 +32,7 @@ def register():
     return json.dumps(user_data, default=oid_handler), 200, regular_req_headers
 
 
-@app.route('api/v1/<username>/login', methos=['POST'])
+@app.route('/api/v1/<username>/login', methos=['POST'])
 @check_req_body_wrapper('password', 'clientid', 'client_secret')
 def login(username):
     # 检查client_id, client_secret的正确性
