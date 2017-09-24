@@ -2,6 +2,7 @@ import json
 
 from flask_init import app
 
+import user
 
 @app.errorhandler(500)
 def internal_server_error(e):
