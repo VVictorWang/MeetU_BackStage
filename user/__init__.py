@@ -32,7 +32,7 @@ def register():
     return json.dumps(user_data, default=oid_handler), 200, regular_req_headers
 
 
-@app.route('/api/v1/<username>/login', methos=['POST'])
+@app.route('/api/v1/<username>/login', methods=['POST'])
 @check_req_body_wrapper('password', 'clientid', 'client_secret')
 def login(username):
     # 检查client_id, client_secret的正确性
