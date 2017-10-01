@@ -1,0 +1,1 @@
+uwsgi --socket 0.0.0.0:8889 --protocol=http -w main:app
