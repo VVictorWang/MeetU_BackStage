@@ -13,12 +13,13 @@ from setting import client_id, client_secret
 
 
 @app.route('/api/v1/user', methods=['POST'])
-@check_req_body_wrapper('username', 'password', 'sex', 'age')
+@check_req_body_wrapper('username', 'password', 'nickname', 'sex', 'age')
 def register():
     try:
         json_req_data = json.loads(request.data)
         user_data = {'username': json_req_data['username'],
                      'password': json_req_data['password'],
+                     'nickname': json_req_data['nickname'],
                      'created_time': time.time(),
                      'sex': json_req_data['sex'],
                      'age': json_req_data['age']
