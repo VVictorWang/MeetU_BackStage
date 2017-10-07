@@ -4,6 +4,6 @@ from pymongo import ASCENDING
 from pymongo import errors
 from pymongo import ReturnDocument
 
-client = MongoClient('localhost', 27018)
+client = MongoClient('localhost', 27017)
 
 db = client['MeetU']

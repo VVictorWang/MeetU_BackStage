@@ -1,4 +1,4 @@
-import datetime
+import time
 import json
 import math
 import time
@@ -19,7 +19,7 @@ def register():
         json_req_data = json.loads(request.data)
         user_data = {'username': json_req_data['username'],
                      'password': json_req_data['password'],
-                     'created_time': datetime.datetime.utcnow(),
+                     'created_time': time.time(),
                      'sex': json_req_data['sex'],
                      'age': json_req_data['age']
                      }
