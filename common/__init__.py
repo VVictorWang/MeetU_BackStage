@@ -29,7 +29,7 @@ class Crypt():
 
     def encrypt(self, text):
         cryptor = AES.new(self.key, self.mode, self.key)
-        length = 16
+        length = 32
         count = len(text)
         add = length - (count % length)
         self.ciphertext = cryptor.encrypt(text)
@@ -130,8 +130,10 @@ def check_req_body_wrapper(*keys):
                 if results:
                     return fn(*args, **kwargs)
                 else:
+                    print('error result')
                     return _bad_request, 400, regular_req_headers
             except:
+                print('error except')
                 return _bad_request, 400, regular_req_headers
 
         return wrapped
