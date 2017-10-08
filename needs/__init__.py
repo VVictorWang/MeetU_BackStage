@@ -1,6 +1,5 @@
 import json
 import bson
-import datetime
 import time
 
 from flask_init import app
@@ -71,3 +70,32 @@ def edit_need(id):
     result = db['_needs'].find_one_and_update({'_id': bson.ObjectId(id)}, {'$set': new_data},
                                               return_document=ReturnDocument.AFTER)
     return json.dumps(result, default=oid_handler), 200, regular_req_headers
+
+
+@app.route('/api/v1/needs/<id>', methods=['DELETE'])
+def delete_need(id):
+    result = db['_needs'].find_one({'_id': bson.ObjectId(id)})
+    if result is None:
+        return json.dumps({'error': 'no such need found'}), 400, regular_req_headers
+    db['_users'].update_many({'needs': {
+        '$in': [bson.ObjectId(id)]
+    }}, {
+        '$pull': {
+            'needs': {
+                '$in': [bson.ObjectId(id)]
+            }
+        }
+    })
+    db['_needs'].delete_one({'_id': bson.ObjectId(id)})
+
+    return json.dumps({'msg': 'delete successfully!'}), 200, regular_req_headers
+
+
+@app.route('/api/v1/needs', methods=['GET'])
+def get_all_nest():
+    results = db['_needs'].find()
+    temp = dict()
+    temp['need'] = []
+    for value in results:
+        temp['need'].append(value)
+    return json.dumps(temp, default=oid_handler), 200, regular_req_headers
