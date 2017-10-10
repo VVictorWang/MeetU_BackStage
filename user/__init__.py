@@ -42,9 +42,9 @@ def register():
     return json.dumps({'status': 1}), 200, regular_req_headers
 
 
-@app.route('/api/v1/login', methods=['POST'])
-@check_req_body_wrapper('phone', 'password', 'client_id', 'client_secret')
-def login():
+@app.route('/api/v1/user/<phone>', methods=['POST'])
+@check_req_body_wrapper('password', 'client_id', 'client_secret')
+def login(phone):
     # 检查client_id, client_secret的正确性
     json_req_data = json.loads(request.data)
     if client_id == json_req_data['client_id'] and client_secret == json_req_data['client_secret']:
@@ -54,16 +54,22 @@ def login():
 
     # 检查通过，开始查询尝试登陆
     password = json_req_data['password']
-    phone = json_req_data['phone']
     result = db['_users'].find_one({'phone': phone})
     if result is None:
-        return _no_user_named_xxx, 400, regular_req_headers
+        return json.dumps({'status': -1}), 200, regular_req_headers
     if password != result['password']:
-        return json.dumps({'error': 'Wrong Password'}), 200, regular_req_headers
-    return get_user_info(result)
+        return json.dumps({'status': '0'}), 200, regular_req_headers
+    return json.dumps({'status': 1, 'token': pc.encrypt('%10s %10s %10s' % (phone, str(math.floor(time.time())), client_id))}), 200, regular_req_headers
 
 
-def get_user_info(result):
-    keys = list(filter(lambda key: key not in ['password','created_time'], result.keys()))
+@app.route('/api/v1/user/<phone>', methods=['GET'])
+@check_header_wrapper('token')
+@auth_wrapper
+def get_user_info(phone):
+    result = db['_users'].find_one({'phone': phone})
+    if result is None:
+        return json.dumps({'status': -1}), 200, regular_req_headers
+    keys = list(filter(lambda key: key not in [
+        'password', 'created_time'], result.keys()))
     values = list(map(lambda key: result[key], keys))
     return json.dumps(dict(zip(keys, values)), default=oid_handler), 200, regular_req_headers

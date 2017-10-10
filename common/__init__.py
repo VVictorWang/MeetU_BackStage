@@ -6,7 +6,7 @@ from Crypto.Cipher import AES
 
 from flask_init import request
 
-import datetime
+import time
 import math
 import bson
 
@@ -14,13 +14,10 @@ from setting import client_id
 
 
 def oid_handler(x):
-    if isinstance(x, datetime.datetime):
-        return math.floor(x.timestamp())
-    elif isinstance(x, bson.ObjectId):
+    if isinstance(x, bson.ObjectId):
         return str(x)
     else:
         raise TypeError(x)
-
 
 
 class Crypt():
@@ -28,12 +25,17 @@ class Crypt():
         self.key = key
         self.mode = AES.MODE_CBC
 
+    # 加密函数，如果text不是16的倍数【加密文本text必须为16的倍数！】，那就补足为16的倍数
     def encrypt(self, text):
         cryptor = AES.new(self.key, self.mode, self.key)
-        length = 32
+        # 这里密钥key 长度必须为16（AES-128）、24（AES-192）、或32（AES-256）Bytes 长度.目前AES-128足够用
+        length = 16
         count = len(text)
         add = length - (count % length)
+        text = text + ('\0' * add)
         self.ciphertext = cryptor.encrypt(text)
+        # 因为AES加密时候得到的字符串不一定是ascii字符集的，输出到终端或者保存时候可能存在问题
+        # 所以这里统一把加密后的字符串转化为16进制字符串
         return str(b2a_hex(self.ciphertext), 'utf-8')
 
     # 解密后，去掉补足的空格用strip() 去掉
@@ -69,37 +71,39 @@ def check_headers(headers, *headers_key):
 
 def auth_wrapper(fn):
     @wraps(fn)
-    def wrapped(*args, **kwargs):
-        if 'username' in kwargs:
-            username = kwargs['username']
+    def wrapped(phone, *args, **kwargs):
+        if 'phone' in kwargs:
+            phone = phone
         else:
-            username = None
+            phone = None
 
         try:
-            authorization = request.headers.get('authorization')
+            authorization = request.headers.get('token')
             decoded_auth = pc.decrypt(authorization)
 
-            keys = ['username', 'timestamp', 'client_id']
+            keys = ['phone', 'timestamp', 'client_id']
             values = decoded_auth.split(' ')
             _dict = dict(zip(keys, values))
-            if username != None and _dict['username'] != username:
+            print(_dict)
+            if phone != None and _dict['phone'] != phone:
                 return _unauthorized_body, 401, regular_req_headers
             else:
-                if int(_dict['timestamp']) - math.floor(datetime.time.time()) >= 3600 * 24 * 30:
+                if int(_dict['timestamp']) - math.floor(time.time()) >= 3600 * 24 * 30:
                     return _unauthorized_body, 401, regular_req_headers
                 else:
                     if _dict['client_id'] == client_id:
                         pass
                     else:
                         return _unauthorized_body, 401, regular_req_headers
-        except:
+        except Exception as e:
+            print(str(e))
             return _bad_request, 400, regular_req_headers
 
         # auth pass!
-        if 'username' in kwargs:
+        if 'phone' in kwargs:
             return fn(*args, **kwargs)
         else:
-            return fn(*args, **kwargs, username=_dict['username'])
+            return fn(*args, **kwargs, phone=_dict['phone'])
 
     return wrapped
 
