@@ -30,16 +30,16 @@ def register():
         # db['_users'].remove()
         if db['_users'].find_one({'phone': user_data['phone']}) is not None:
             return json.dumps(
-                {'error': 'the Phone has already registered!'}), 400, regular_req_headers
+                {'status': -1}), 200, regular_req_headers
 
         db['_users'].insert_one(user_data)
 
     except errors.DuplicateKeyError:
-        return json.dumps({'error': 'the User Id  has already existed!'}), 400, regular_req_headers
+        return json.dumps({'status': 0}), 200, regular_req_headers
     except:
         return _bad_request, 400, regular_req_headers
     print(user_data)
-    return json.dumps(user_data, default=oid_handler), 200, regular_req_headers
+    return json.dumps({'status': 1}), 200, regular_req_headers
 
 
 @app.route('/api/v1/login', methods=['POST'])
@@ -64,6 +64,6 @@ def login():
 
 
 def get_user_info(result):
-    keys = list(filter(lambda key: key not in ['password'], result.keys()))
+    keys = list(filter(lambda key: key not in ['password','created_time'], result.keys()))
     values = list(map(lambda key: result[key], keys))
     return json.dumps(dict(zip(keys, values)), default=oid_handler), 200, regular_req_headers
