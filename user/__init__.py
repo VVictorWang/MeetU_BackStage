@@ -13,20 +13,19 @@ from setting import client_id, client_secret
 
 
 @app.route('/api/v1/user', methods=['POST'])
-@check_req_body_wrapper('id', 'password', 'nickname', 'phone', 'qq', 'age')
+@check_req_body_wrapper('password', 'nickname', 'phone', 'qq')
 def register():
     try:
         json_req_data = json.loads(request.data)
-        user_data = {'_id': json_req_data['id'],
-                     'password': json_req_data['password'],
-                     'nickname': json_req_data['nickname'],
-                     'phone': json_req_data['phone'],
-                     'qq': json_req_data['qq'],
-                     'created_time': time.time(),
-                     'age': json_req_data['age'],
-                     'love_level': 0,
-                     'needs': []
-                     }
+        user_data = {
+            'password': json_req_data['password'],
+            'nickname': json_req_data['nickname'],
+            'phone': json_req_data['phone'],
+            'qq': json_req_data['qq'],
+            'created_time': time.time(),
+            'love_level': 0,
+            'needs': []
+        }
         # db['_users'].remove()
         if db['_users'].find_one({'phone': user_data['phone']}) is not None:
             return json.dumps(
@@ -59,7 +58,7 @@ def login(phone):
         return json.dumps({'status': -1}), 200, regular_req_headers
     if password != result['password']:
         return json.dumps({'status': '0'}), 200, regular_req_headers
-    return json.dumps({'status': 1, 'token': pc.encrypt('%10s %10s %10s' % (phone, str(math.floor(time.time())), client_id))}), 200, regular_req_headers
+    return json.dumps({'status': 1, 'token': pc.encrypt('%s %s %s' % (phone, str(math.floor(time.time())), client_id))}), 200, regular_req_headers
 
 
 @app.route('/api/v1/user/<phone>', methods=['GET'])
@@ -69,7 +68,7 @@ def get_user_info(phone):
     result = db['_users'].find_one({'phone': phone})
     if result is None:
         return json.dumps({'status': -1}), 200, regular_req_headers
-    keys = list(filter(lambda key: key not in [
+    keys = list(filter(lambda key: key not in ['_id',
         'password', 'created_time'], result.keys()))
     values = list(map(lambda key: result[key], keys))
     return json.dumps(dict(zip(keys, values)), default=oid_handler), 200, regular_req_headers

@@ -1,7 +1,7 @@
 # `MeetU`后台接口
 ## 全局参数:
 - 数据形式为`application/json`
-- 需要`token`的接口用`@token_require`标注
+- 需要`token`的`Header`的接口用`@token_require`标注
 
 ## 用户信息(`userinfo`):
 ```json
@@ -35,16 +35,82 @@
 
 ## 接口描述
 ### 用户注册
-`URL`: `api/v1/user`, `method`=**`POST`**
+`URL` : `api/v1/user`, `method` = **`POST`**
 
-`Request Body`:
+`Request Body` :
 ```json
 {
-	"id": string,
-	"phone":string,
+	"phone": string,
 	"qq": string,
 	"password": string,
-	"nickname": string,
-	"age":int
+	"nickname": string
 }
+```
+`Response Body` :
+```json
+{
+    "status": 1 
+    /* 1 represents successfully registered, 0 represents failure, -1 representers the phone number has already registered */
+}
+```
+### 用户登录
+`URL`: `api/v1/user/<phone>` `method`=**`POST`**
+
+`Request Body` :
+```json
+{
+	"password": string, //the user's password
+	"client_id": string, //the client id
+	"client_secret": string //the client secret string
+}
+```
+`Response Body` :
+```json
+{
+    "status": 1, 
+    // 1 represents login successfully, while 0 represents the opposite
+    "token": string //only shows when the user logged in successfully
+}
+```
+### 获取用户信息
+`URL` : `api/v1/user/<phone>`  `method` = **`GET`**
+
+`@token_require`
+
+`Response Body` :
+```json
+{
+    "nickname": string, //the user's nickname
+    "phone": string, //the user's phone number
+    "qq": string, //the user's qq number
+    "love_level": int, //the user's love level, between 0 and 100
+    "needs": [
+        string,
+        string,
+        ...
+    ] //the orders that the user participated in
+}
+```
+
+### 添加需求
+`URL` : `api/v1/needs` `method`=**`POST`**
+
+`@token_require`
+
+`Request Body` :
+```json
+{
+	"creator_phone": string, //the creator's phone number
+	"desc": string, //the description of the order 
+	"continue_time": int, 
+	"sex": string,
+	"longitude": float,
+	"latitude": float,
+	"location": string,
+	"destination": string
+}
+```
+`Response Body` :
+```json
+
 ```

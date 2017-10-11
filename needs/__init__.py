@@ -22,22 +22,24 @@ from common import oid_handler
 
 
 @app.route('/api/v1/needs', methods=['POST'])
-@check_req_body_wrapper('creator_id', 'desc', 'continue_time', 'sex', 'longitude', 'latitude',
-                        'location',
-                        'destination')
-def add_need():
+@check_header_wrapper('token')
+@auth_wrapper
+@check_req_body_wrapper('creator_phone', 'desc', 'continue_time', 'sex', 'longitude', 'latitude',
+                        'location', 'destination')
+def add_need(phone):
     json_req_data = json.loads(request.data)
     try:
-        keys = ['creator_id', 'desc', 'continue_time', 'sex', 'longitude', 'latitude', 'location',
+        keys = ['creator_phone', 'desc', 'continue_time', 'sex', 'longitude', 'latitude',
+                'location',
                 'destination']
         values = map(lambda key: json_req_data[key], keys)
         data_to_insert = dict(zip(keys, values))
         data_to_insert['create_time'] = int(time.time())
         data_to_insert['status'] = waiting
-        data_to_insert['helper_id'] = -1
+        data_to_insert['helper_phone'] = ''
         insert_id = db['_needs'].insert_one(data_to_insert).inserted_id
         print(insert_id)
-        result = db['_users'].find_one_and_update({'_id': json_req_data['creator_id']}, {
+        result = db['_users'].find_one_and_update({'phone': json_req_data['creator_phone']}, {
             '$push': {
                 'needs': {
                     '$each': [insert_id]
@@ -52,7 +54,9 @@ def add_need():
 
 
 @app.route('/api/v1/needs/<id>', methods=['GET'])
-def get_needs_info(id):
+@check_header_wrapper('token')
+@auth_wrapper
+def get_needs_info(phone, id):
     result = db['_needs'].find_one({'_id': bson.ObjectId(id)})
     if result is None:
         return json.dumps({'error': 'no such need found'}), 400, regular_req_headers
@@ -62,7 +66,9 @@ def get_needs_info(id):
 
 
 @app.route('/api/v1/needs/<id>', methods=['PUT', 'POST'])
-def edit_need(id):
+@check_header_wrapper('token')
+@auth_wrapper
+def edit_need(phone, id):
     new_data = json.loads(request.data)
     if '_id' in new_data or 'creator_id' in new_data or 'create_time' in new_data:
         return json.dumps({'error': 'You can\'t change some param'}), 400, regular_req_headers
@@ -73,7 +79,9 @@ def edit_need(id):
 
 
 @app.route('/api/v1/needs/<id>', methods=['DELETE'])
-def delete_need(id):
+@check_header_wrapper('token')
+@auth_wrapper
+def delete_need(phone, id):
     result = db['_needs'].find_one({'_id': bson.ObjectId(id)})
     if result is None:
         return json.dumps({'error': 'no such need found'}), 400, regular_req_headers
@@ -92,13 +100,15 @@ def delete_need(id):
 
 
 @app.route('/api/v1/needs', methods=['GET'])
+@check_header_wrapper('token')
+@auth_wrapper
 def get_all_nest():
+    # db['_needs'].remove()
     results = db['_needs'].find()
     temp = dict()
     temp['need'] = []
     for value in results:
         temp['need'].append(value)
     return json.dumps(temp, default=oid_handler), 200, regular_req_headers
-
 
 # @app.route('/api/v1/needs/help',methods=[''])

@@ -71,16 +71,15 @@ def check_headers(headers, *headers_key):
 
 def auth_wrapper(fn):
     @wraps(fn)
-    def wrapped(phone, *args, **kwargs):
+    def wrapped(*args, **kwargs):
         if 'phone' in kwargs:
-            phone = phone
+            phone = kwargs['phone']
         else:
             phone = None
 
         try:
             authorization = request.headers.get('token')
             decoded_auth = pc.decrypt(authorization)
-
             keys = ['phone', 'timestamp', 'client_id']
             values = decoded_auth.split(' ')
             _dict = dict(zip(keys, values))
@@ -129,7 +128,6 @@ def check_req_body_wrapper(*keys):
             # check if headers have key provided
             try:
                 decoded_req_data = json.loads(request.data)
-
                 # 检查需要的key是否都在
                 results = sum(map(lambda key: key in decoded_req_data, keys)) == len(list(keys))
                 if results:
@@ -137,7 +135,8 @@ def check_req_body_wrapper(*keys):
                 else:
                     print('error result')
                     return _bad_request, 400, regular_req_headers
-            except:
+            except Exception as e:
+                print(str(e))
                 print('error except')
                 return _bad_request, 400, regular_req_headers
 
