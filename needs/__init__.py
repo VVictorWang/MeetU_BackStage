@@ -102,7 +102,7 @@ def delete_need(phone, id):
 @app.route('/api/v1/needs', methods=['GET'])
 @check_header_wrapper('token')
 @auth_wrapper
-def get_all_nest():
+def get_all_nest(phone):
     # db['_needs'].remove()
     results = db['_needs'].find()
     temp = dict()
