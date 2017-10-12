@@ -65,7 +65,7 @@ def get_needs_info(phone, id):
     return json.dumps(dict(zip(keys, values)), default=oid_handler), 200, regular_req_headers
 
 
-@app.route('/api/v1/needs/<id>', methods=['PUT', 'POST'])
+@app.route('/api/v1/needs/<id>', methods=['PUT'])
 @check_header_wrapper('token')
 @auth_wrapper
 def edit_need(phone, id):

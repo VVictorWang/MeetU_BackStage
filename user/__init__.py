@@ -57,7 +57,7 @@ def login(phone):
     if result is None:
         return json.dumps({'status': -1}), 200, regular_req_headers
     if password != result['password']:
-        return json.dumps({'status': '0'}), 200, regular_req_headers
+        return json.dumps({'status': 0}), 200, regular_req_headers
     return json.dumps({'status': 1, 'token': pc.encrypt('%s %s %s' % (phone, str(math.floor(time.time())), client_id))}), 200, regular_req_headers
 
 
