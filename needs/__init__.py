@@ -26,7 +26,7 @@ from common import oid_handler
 @check_header_wrapper('token')
 @auth_wrapper
 @check_req_body_wrapper('creator_phone', 'desc', 'continue_time', 'sex', 'longitude', 'latitude',
-                        'location', 'destination')
+                        'location', 'destination','created_time')
 def add_need(phone):
     json_req_data = json.loads(request.data)
     try:
@@ -35,7 +35,6 @@ def add_need(phone):
                 'destination']
         values = map(lambda key: json_req_data[key], keys)
         data_to_insert = dict(zip(keys, values))
-        data_to_insert['create_time'] = int(time.time())
         data_to_insert['status'] = waiting
         data_to_insert['helper_phone'] = ''
         insert_id = db['_needs'].insert_one(data_to_insert).inserted_id
