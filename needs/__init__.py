@@ -18,6 +18,7 @@ from common import auth_wrapper
 from common import check_req_body_wrapper
 from common import check_header_wrapper
 from setting import waiting
+from setting import finished
 from common import oid_handler
 
 

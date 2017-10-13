@@ -7,6 +7,7 @@ from common import check_req_body_wrapper, regular_req_headers, _bad_request, oi
     _unauthorized_body, pc, _no_user_named_xxx, check_header_wrapper, auth_wrapper
 from database import db
 from database import errors
+from database import ReturnDocument
 from flask_init import app
 from flask_init import request
 from setting import client_id, client_secret
@@ -61,6 +62,23 @@ def login(phone):
     return json.dumps({'status': 1, 'token': pc.encrypt('%s %s %s' % (phone, str(math.floor(time.time())), client_id))}), 200, regular_req_headers
 
 
+@app.route('/api/v1/user/edit/<phone>', methods=['GET'])
+@check_header_wrapper('token')
+@auth_wrapper
+def add_user_love_level(phone):
+    result = db['_users'].find_one({'phone': phone})
+    if result is None:
+        return json.dumps({'error': 'no user find'}), 400, regular_req_headers
+    love_level_previous = result['love_level']
+    db['_users'].find_one_and_update(
+        {'phone': phone}, {'$set': {'love_level': love_level_previous + 1}}, return_document=ReturnDocument.AFTER)
+    result['love_level'] = love_level_previous + 1
+    keys = list(filter(lambda key: key not in ['_id',
+                                               'password', 'created_time'], result.keys()))
+    values = list(map(lambda key: result[key], keys))
+    return json.dumps(dict(zip(keys, values)), default=oid_handler), 200, regular_req_headers
+
+
 @app.route('/api/v1/user/<phone>', methods=['GET'])
 @check_header_wrapper('token')
 @auth_wrapper
@@ -69,6 +87,6 @@ def get_user_info(phone):
     if result is None:
         return json.dumps({'status': -1}), 200, regular_req_headers
     keys = list(filter(lambda key: key not in ['_id',
-        'password', 'created_time'], result.keys()))
+                                               'password', 'created_time'], result.keys()))
     values = list(map(lambda key: result[key], keys))
     return json.dumps(dict(zip(keys, values)), default=oid_handler), 200, regular_req_headers
