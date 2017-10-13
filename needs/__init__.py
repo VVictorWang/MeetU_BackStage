@@ -70,7 +70,7 @@ def get_needs_info(phone, id):
 @auth_wrapper
 def edit_need(phone, id):
     new_data = json.loads(request.data)
-    if '_id' in new_data or 'creator_id' in new_data or 'create_time' in new_data:
+    if '_id' in new_data or 'creator_phone' in new_data or 'create_time' in new_data:
         return json.dumps({'error': 'You can\'t change some param'}), 400, regular_req_headers
 
     result = db['_needs'].find_one_and_update({'_id': bson.ObjectId(id)}, {'$set': new_data},

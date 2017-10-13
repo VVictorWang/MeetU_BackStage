@@ -69,10 +69,17 @@ def edit_user(phone):
     new_data = json.loads(request.data)
     if '_id' in new_data or 'password' in new_data or 'create_time' in new_data:
         return json.dumps({'error': 'You can\'t change some param'}), 400, regular_req_headers
-
-    result = db['_user'].find_one_and_update({'phone': phone}, {'$set': new_data},
-                                              return_document=ReturnDocument.AFTER)
-    return json.dumps({'status',1}), 200, regular_req_headers
+    print(new_data)
+    if new_data['phone'] != phone:
+        db['_needs'].update_many({'creator_phone': phone}, {
+                                 '$set': {'creator_phone': new_data['phone']}})
+        db['_needs'].update_many({'helper_phone': phone}, {
+                                 '$set': {'helper_phone': new_data['phone']}})
+    result = db['_users'].find_one_and_update(
+        {'phone': phone}, {'$set': new_data}, return_document=ReturnDocument.AFTER)
+    if result is None:
+        return json.dumps({'status': -1}), 200, regular_req_headers
+    return json.dumps({'status': 1}), 200, regular_req_headers
 
 
 @app.route('/api/v1/user/edit/<phone>', methods=['GET'])
