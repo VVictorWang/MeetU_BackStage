@@ -32,7 +32,7 @@ def add_need(phone):
     try:
         keys = ['creator_phone', 'desc', 'continue_time', 'sex', 'longitude', 'latitude',
                 'location',
-                'destination']
+                'destination','created_time']
         values = map(lambda key: json_req_data[key], keys)
         data_to_insert = dict(zip(keys, values))
         data_to_insert['status'] = waiting
